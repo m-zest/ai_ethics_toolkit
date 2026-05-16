@@ -2,78 +2,132 @@
 
 # Ethics Toolkit
 
-**Put values into action.** An interactive workspace for ethical review of products, AI systems, and decisions — adapted from the Stanford McCoy Family Center *Ethics Toolkit*.
+### Move ethics from theory into team practice.
 
-Five worksheets · nine Value Cards · save, share & export to a polished PDF
+An interactive workspace for AI governance reviews, product ethics, and design decisions. Five structured worksheets, nine value cards, save and share your work, export to a print-ready PDF. Adapted from the Stanford McCoy Family Center *Ethics Toolkit* under CC BY 4.0.
+
+<br />
+
+[![Next.js](https://img.shields.io/badge/Next.js-14-000000?style=flat-square&logo=next.js)](https://nextjs.org)
+[![Tailwind](https://img.shields.io/badge/Tailwind-3.4-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com)
+[![License: MIT](https://img.shields.io/badge/Code-MIT-green.svg?style=flat-square)](#license)
+[![Content: CC BY 4.0](https://img.shields.io/badge/Content-CC%20BY%204.0-blue.svg?style=flat-square)](https://creativecommons.org/licenses/by/4.0/)
+[![Deploy](https://img.shields.io/badge/Deploy-Vercel-black.svg?style=flat-square&logo=vercel)](https://vercel.com/new)
+
+[**Live demo**](#) · [**Quick start**](#quick-start) · [**Use cases**](#use-cases) · [**Architecture**](#architecture)
 
 </div>
 
 ---
 
-## Overview
+## Why this exists
 
-The Ethics Toolkit turns a paper worksheet process into a focused web app. Teams work through five structured tools — **Future Story**, **Impacts Explorer**, **Ethics Frame**, **Ethics Gauge**, and **Weighing Options** — to surface benefits, harms, and trade‑offs before they ship.
+Ethics frameworks tend to fail at the same point. They give you principles ("respect autonomy, ensure fairness") and leave you to figure out what to do, or they hand you a 200-question compliance checklist that nobody fills in honestly.
 
-| Capability | What it does |
-|---|---|
-| **Learn** | Definition, benefits, how‑to, and a worked example for every tool |
-| **Use** | A guided worksheet for each tool, with autosave to the form as you type |
-| **Save Draft** | Stores the draft privately in your browser (`localStorage`) |
-| **Share** | Generates a 6‑character code; collaborators paste it to load the draft |
-| **Download PDF** | Exports a professional, print‑ready PDF laid out like the original toolkit |
-| **Value Cards** | Nine ethical values with concrete *degrading ↔ promoting* spectra |
+The Stanford McCoy Family Center solved the middle layer. Five worksheets, sized for one team meeting each, that force structured thinking about benefits, harms, distribution, and trade-offs. The original ships as a PDF. This project turns that PDF into a workspace your team actually opens during product reviews.
 
-Built with **Next.js 14**, **Tailwind CSS**, **@react-pdf/renderer**, and serverless **Redis (KV)** for shared drafts.
+> Use it when you need a one-page artifact at the end of a sixty-minute discussion. Not when you need to read about ethics.
 
 ---
 
-## Deploy to Vercel
+## What's inside
 
-No command line required. The whole flow takes about ten minutes.
+Five tools, organized by where you are in your process. Each has a Learn tab with the toolkit's definition and worked example, and a Use tab with a guided worksheet.
 
-### 1 · Put the code on GitHub
+| Stage | Tool | Use when |
+|---|---|---|
+| **Explore** | Future Story | You're early. You want to imagine the long-term consequences before committing. |
+| **Explore** | Impacts Explorer | You need to map second- and third-order effects of a decision. |
+| **Evaluate** | **Ethics Frame** | You have a plan and need a one-page artifact capturing values, benefits, harms, distribution, and your verdict. |
+| **Evaluate** | Ethics Gauge | You want a quick visual assessment across benefit, harm, fairness, and empowerment. |
+| **Decide** | Weighing Options | You're choosing between two or more concrete paths. |
 
-Create a new repository and upload these files (or push this repo). Do not add a generated `.gitignore` or README — the project ships its own.
+Plus nine **Value Explainer Cards** (Well-being, Justice, Trust, Privacy, Dignity, Virtues, Autonomy, Responsibility, Relationships), each with degrading↔promoting spectra you can reference while filling in any tool.
 
-### 2 · Import into Vercel
+---
 
-1. Go to **[vercel.com/new](https://vercel.com/new)** and sign in with GitHub.
-2. **Import** the repository.
-3. Keep every default (Framework: *Next.js*, Root: `./`) and click **Deploy**.
+## Features
 
-In ~90 seconds you get a live URL. Home, Learn, Use, **Save Draft**, **Download PDF**, and Value Cards all work immediately. Only **Share** needs the database below.
+#### **Save your work locally**
+Drafts persist in `localStorage`, scoped to your browser. No account required, nothing leaves your device.
 
-### 3 · Enable sharing (the KV database)
+#### **Share by code**
+Generate a six-character code, send it to a collaborator. They paste it into Workspace and your draft opens. Backed by serverless Redis, codes expire after ninety days.
 
-Share codes are stored in a serverless Redis instance. This is the part that previously failed when the database was missing or wired up under different variable names — it is now handled automatically, you just need to connect a database once.
+#### **Export to PDF**
+Render any filled worksheet to a vector PDF that mirrors the original toolkit's layout. Selectable text, branded cover page, per-page attribution footer. Generation runs entirely in the browser.
 
-1. Open your project in Vercel → **Storage** tab.
-2. **Create Database → Upstash → Redis** (the **Free** plan is plenty: 10,000 commands/day).
-3. When prompted, **Connect** it to this project. Vercel injects the credentials as environment variables for you.
-4. Go to **Deployments**, open the latest one's **⋯** menu, and click **Redeploy** so the new variables are picked up.
+#### **Built for facilitators**
+A guided worksheet for every tool. Helper prompts on every field. The Ethics Gauge ships with real sliders (red→green) instead of static circles. Add custom Value Cards or extend tools without touching the data layer.
 
-That's it. The app accepts either the classic `KV_REST_API_URL` / `KV_REST_API_TOKEN` names **or** the `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` names, so it works no matter which path provisioned the database. If sharing is ever used before a database is connected, the app now shows a clear, actionable message instead of a generic failure.
+---
 
-> **Verifying:** open any worksheet → **Share** → you should get a code. Paste it in **Workspace → Load a shared draft** to confirm round‑trip.
+## Quick start
+
+### Deploy to Vercel in ten minutes
+
+No command line. You will need a GitHub account and a Vercel account (both free).
+
+1. **Create a new GitHub repo** at [github.com/new](https://github.com/new). Skip the README and `.gitignore` checkboxes (the project ships its own).
+2. **Drag every file** from this folder into GitHub's web uploader. Commit.
+3. **Import into Vercel** at [vercel.com/new](https://vercel.com/new). Accept defaults. Click Deploy.
+4. **Wait ninety seconds.** You will get a URL like `ethics-toolkit-yourname.vercel.app`.
+
+The app is fully functional at this point. Learn, Use, Save Draft, Download PDF, and Value Cards work immediately.
+
+### Enable sharing (optional, one extra step)
+
+Only the **Share by code** feature needs a database.
+
+5. In your Vercel project → **Storage** → **Create Database** → **Upstash Redis** (Free plan).
+6. **Connect** to your project. Vercel auto-injects credentials.
+7. **Redeploy** from the Deployments tab.
+
+The app accepts either `KV_REST_API_*` or `UPSTASH_REDIS_REST_*` variable names, so it works regardless of which path provisioned the database. If sharing is attempted before a database is connected, the app shows a clear actionable message rather than failing silently.
+
+### Verify
+
+Open any worksheet → **Share** → confirm you get a code. Paste it into **Workspace → Load a shared draft** for a round-trip test.
 
 ---
 
 ## Local development
 
-Requires Node.js 18+.
-
 ```bash
+git clone <your-repo>
+cd ethics-toolkit
 npm install
-npm run dev      # http://localhost:3000
+npm run dev          # http://localhost:3000
 ```
 
-`Save Draft` and `Download PDF` work locally with zero configuration. To test **Share** locally, copy one credential pair from your Vercel project's **Settings → Environment Variables** into a `.env.local` file (see `.env.example`).
+Requires Node.js 18+.
+
+`Save Draft` and `Download PDF` work locally with zero configuration. To test `Share` against your production database, copy `KV_REST_API_URL` and `KV_REST_API_TOKEN` from Vercel's **Settings → Environment Variables** into a `.env.local` file.
 
 ---
 
-## The PDF export
+## Use cases
 
-`Download PDF` renders the filled worksheet to a vector PDF using `@react-pdf/renderer`. The layout mirrors the original toolkit worksheets — landscape pages, labelled prompt boxes, the red→green Ethics Gauge scale, benefit/harm colour coding, a branded cover, and a per‑page attribution footer. Text is selectable and the file is small. Generation runs entirely in the browser, so it adds no server cost on Vercel.
+### AI governance reviews in industry
+
+You are the AI Governance SME at a tech company. A product team wants to ship an AI feature. You schedule a ninety-minute workshop, walk them through **Ethics Frame**, and produce a filled worksheet that becomes the governance artifact attached to the launch decision. PDF export goes into the audit trail.
+
+### Workshop facilitation
+
+You run an ethics workshop for a class, a research lab, or a product team. Open one tool on screen. The interactive form keeps the discussion structured. At the end, export the PDF and email it to participants as a record of what the group decided.
+
+### Classroom assignments
+
+Stanford's ETPP and similar practitioner courses assign the Impact Explorer or Ethics Frame for real situations. Fill it in here, export the PDF, upload to the course portal.
+
+### Solo product reviews
+
+You're a founder, a PM, or a researcher. You want to think through an ethical decision rigorously without committing to a team workshop. Open Ethics Frame, fill it in, save the draft. Revisit in two weeks.
+
+---
+
+
+**Privacy model.** Personal drafts never leave your browser. Only drafts you explicitly Share are uploaded to Redis, keyed by a six-character code. Without the code, the draft cannot be retrieved. Codes expire after ninety days. No accounts, no analytics, no tracking.
 
 ---
 
@@ -82,43 +136,146 @@ npm run dev      # http://localhost:3000
 ```
 app/
 ├── api/share/
-│   ├── route.js            # POST — create a share code
-│   └── [code]/route.js     # GET  — load a draft by code
-├── lib/kv.js               # Resilient KV client (resolves KV_ or UPSTASH_ vars)
-├── pdf/EthicsToolkitPdf.jsx # Professional PDF document + download helper
-├── EthicsToolkitApp.jsx    # All UI (tools, learn/use, workspace, value cards)
-├── globals.css             # Fonts + Tailwind base
-├── layout.jsx              # Root HTML shell
-└── page.jsx                # Entry point
+│   ├── route.js              POST  · create a share code
+│   └── [code]/route.js       GET   · load a draft by code
+├── lib/kv.js                 Resilient KV client (resolves KV_ or UPSTASH_ vars)
+├── pdf/
+│   └── EthicsToolkitPdf.jsx  Vector PDF document + download helper
+├── EthicsToolkitApp.jsx      All UI: tools, learn/use, workspace, value cards
+├── globals.css               Fonts (Fraunces, Manrope, Source Serif 4) + Tailwind
+├── layout.jsx                Root HTML shell
+└── page.jsx                  Entry point
 ```
-
-**Data:** personal drafts live only in the browser's `localStorage`; shared drafts live in Redis keyed by the 6‑character code and expire after 90 days. Nobody can see your saved drafts unless you generate and send a code.
 
 ---
 
-## Attribution & License
+## Customization
+
+### Brand colors
+
+Edit the navy `#1c3a5e` and cardinal `#8C1515` defaults in `tailwind.config.js` and `app/EthicsToolkitApp.jsx`. The accent system is two colors plus neutrals, so switching takes minutes.
+
+### Add custom Value Cards
+
+Append to the `VALUE_CARDS` array in `app/EthicsToolkitApp.jsx`:
+
+```js
+{
+  name: 'Sustainability',
+  definition: 'Meeting present needs without compromising future generations.',
+  spectra: [
+    ['Our creation depletes resources rapidly.',
+     'Our creation uses resources responsibly.'],
+    // two more spectra
+  ],
+}
+```
+
+### Add a new tool
+
+Register it in the `TOOLS` object, write a `*Use` component for the worksheet, and add it to `USE_PANELS`. The navigation picks it up automatically.
+
+### Logo
+
+Replace the concentric-circle mark in the header with your organization's logo. Keep attribution to Stanford visible elsewhere on the page.
+
+---
+
+## Tech stack
+
+| Layer | Choice | Why |
+|---|---|---|
+| Framework | Next.js 14 (App Router) | Single project deploys frontend + serverless API |
+| Styling | Tailwind CSS 3.4 | Utility-first, fast to iterate |
+| Icons | Lucide | Consistent, lightweight, customizable |
+| PDF | @react-pdf/renderer | Vector output, no headless browser required |
+| Database | Upstash Redis | One-click Vercel integration, generous free tier, sub-millisecond reads |
+| Hosting | Vercel | Edge functions, zero-config Next.js deployment |
+
+The whole stack is **free for normal use**. Vercel Hobby plan and Upstash Free tier together handle hundreds of share operations per day at zero cost.
+
+---
+
+## Roadmap
+
+The current version is feature-complete for individual and small-team use. Future directions worth considering:
+
+- **Team workspaces** with shared draft libraries (would require accounts and a relational database)
+- **Custom worksheet builder** for organizations to define their own ethics review templates
+- **Comparison view** that diffs multiple Ethics Frames across teams or quarters
+- **Slack / Linear integrations** for triggering reviews from existing workflows
+- **i18n** for non-English deployments
+
+These are not committed. Suggestions are welcome via Issues.
+
+---
+
+## Attribution
 
 This project is an **independent adaptation** of:
 
-> **Ethics Toolkit: Put Values Into Action** (v1.1, October 2025) — Manuela Travaglianti & Thomas Both, McCoy Family Center for Ethics in Society, Stanford University.
+> **Ethics Toolkit: Put Values Into Action** (v1.1, October 2025)
+> Manuela Travaglianti and Thomas Both
+> McCoy Family Center for Ethics in Society, Stanford University
+> [ethicstoolkit.stanford.edu](https://ethicstoolkit.stanford.edu)
 
-The original toolkit is released under the **Creative Commons Attribution 4.0 International License (CC BY 4.0)** — <https://creativecommons.org/licenses/by/4.0/>. That license permits use, adaptation, and redistribution (including commercially), provided attribution is given, the license is linked, and changes are indicated.
+The original is released under [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/). That license permits use, adaptation, and redistribution including commercially, provided attribution is given, the license is linked, and changes are indicated.
 
-**Changes made:** the original PDF worksheets were adapted into an interactive web application — content was reorganized into form‑based input, some explanatory text was condensed, an interactive Ethics Gauge and Value Cards were added, and a custom PDF export was implemented. The branding mark used here is this project's own and is **not** Stanford's logo.
+**Changes made in this adaptation.** The original PDF worksheets were transformed into an interactive web application. Content was reorganized into form-based input, some explanatory text was condensed, an interactive Ethics Gauge with draggable sliders was added, the Value Cards were given a click-to-expand interaction model, and a custom branded PDF export was implemented. The branding mark used in the header is this project's own and is not Stanford's logo.
 
-> This is an independent adaptation. It is **not** affiliated with, maintained by, or endorsed by Stanford University or the McCoy Family Center for Ethics in Society.
+> This project is **not affiliated with, maintained by, or endorsed by** Stanford University or the McCoy Family Center for Ethics in Society.
 
-The attribution, license link, and change note above are reproduced on the app's home page and in every exported PDF, satisfying the CC BY 4.0 conditions.
+The attribution, license link, and change note above appear on the app's home page and in every exported PDF, satisfying CC BY 4.0 conditions.
 
-**This project's own code** is released under the **MIT License**. The adapted toolkit *content* remains under **CC BY 4.0**, inherited from the source — keep this attribution intact if you fork.
+---
+
+## License
+
+**Code** (this implementation): [MIT](LICENSE)
+**Content** (toolkit text, worksheet structure, value cards): [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), inherited from the source
+
+If you fork, keep both notices intact.
 
 ---
 
 ## Troubleshooting
 
-| Symptom | Fix |
-|---|---|
-| *"Sharing is not configured…"* | Connect Upstash Redis (Storage tab) and **redeploy** — see step 3. |
-| Share code not found | Codes expire after 90 days; check for typos (input is auto‑uppercased). |
-| Saved drafts vanished | They live in `localStorage` — cleared browser data, a different browser, or incognito will not show them. Use Share or Download PDF to move work between devices. |
-| Build fails on Vercel | Ensure `package.json` was uploaded so dependencies install. |
+<table>
+<tr><th>Symptom</th><th>Fix</th></tr>
+<tr>
+  <td><em>"Sharing is not configured…"</em></td>
+  <td>Connect Upstash Redis (Storage tab in Vercel) and redeploy. See step 5 of Quick start.</td>
+</tr>
+<tr>
+  <td>Share code not found</td>
+  <td>Codes expire after 90 days. Input is auto-uppercased so case is not an issue, but check for typos.</td>
+</tr>
+<tr>
+  <td>Saved drafts vanished</td>
+  <td>Drafts live in <code>localStorage</code>. Clearing browser data, using a different browser, or incognito mode will not show them. Use Share or PDF export to move work between devices.</td>
+</tr>
+<tr>
+  <td>Build fails on Vercel</td>
+  <td>Ensure <code>package.json</code> was uploaded so dependencies install. Check the deployment logs.</td>
+</tr>
+<tr>
+  <td>PDF export looks wrong</td>
+  <td>Some browsers cache fonts aggressively. Hard-refresh (Cmd/Ctrl+Shift+R) and retry.</td>
+</tr>
+</table>
+
+---
+
+## Acknowledgments
+
+To Manuela Travaglianti and Thomas Both at Stanford McCoy for building the original toolkit and releasing it under a license that allows this kind of work. To the Project Liberty Institute for funding it. To everyone who has used ethics frameworks in industry settings and confirmed that the PDF format was the bottleneck, not the content.
+
+---
+
+<div align="center">
+
+**Built for AI governance practitioners, research teams, and anyone who has to make hard calls about technology.**
+
+<sub>An independent adaptation. Not affiliated with Stanford University.</sub>
+
+</div>
