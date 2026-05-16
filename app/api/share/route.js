@@ -1,4 +1,7 @@
-import { kv } from '@vercel/kv';
+import { getKv, isKvConfigured, KV_SETUP_MESSAGE } from '../../lib/kv';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 function generateCode() {
   // 6-char base36, uppercase. 36^6 = 2.1 billion combos.
@@ -7,14 +10,17 @@ function generateCode() {
 
 export async function POST(req) {
   try {
+    if (!isKvConfigured()) {
+      return Response.json({ error: KV_SETUP_MESSAGE }, { status: 503 });
+    }
+    const kv = getKv();
+
     const data = await req.json();
 
-    // Basic validation
     if (!data || typeof data !== 'object') {
       return Response.json({ error: 'Invalid payload' }, { status: 400 });
     }
 
-    // Strip oversize content
     const serialized = JSON.stringify(data);
     if (serialized.length > 200_000) {
       return Response.json({ error: 'Draft too large (max 200KB)' }, { status: 413 });
@@ -39,7 +45,7 @@ export async function POST(req) {
   } catch (e) {
     console.error('share POST failed', e);
     return Response.json(
-      { error: e.message || 'Share failed. Has Vercel KV been set up?' },
+      { error: 'Could not save the shared draft. Please try again.' },
       { status: 500 }
     );
   }

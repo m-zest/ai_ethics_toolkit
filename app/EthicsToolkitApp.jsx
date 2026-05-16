@@ -416,25 +416,25 @@ async function shareDraft(data) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
+    const body = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const error = await res.json().catch(() => ({}));
-      throw new Error(error.error || 'Share failed');
+      return { error: body.error || 'Share failed. Please try again.' };
     }
-    const body = await res.json();
-    return body.code;
+    return { code: body.code };
   } catch (e) {
     console.error('share failed', e);
-    return null;
+    return { error: 'Network error while sharing. Please try again.' };
   }
 }
 
 async function loadSharedDraft(code) {
   try {
     const res = await fetch(`/api/share/${encodeURIComponent(code.toUpperCase().trim())}`);
-    if (!res.ok) return null;
-    return await res.json();
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) return { error: body.error || 'Code not found or expired.' };
+    return { data: body };
   } catch {
-    return null;
+    return { error: 'Network error while loading. Please try again.' };
   }
 }
 
@@ -752,9 +752,20 @@ const HomeView = ({ onNavigate }) => {
 
       <section className="px-10 md:px-16 pt-8 border-t border-stone-200">
         <p className="text-[11px] text-stone-500 leading-relaxed font-serif italic max-w-3xl">
-          Content adapted from the Ethics Toolkit by Manuela Travaglianti and Thomas Both,
-          McCoy Family Center for Ethics in Society, Stanford University. Published under
-          Creative Commons Attribution 4.0 (CC BY 4.0).
+          Independent adaptation of the <span className="not-italic font-semibold">Ethics Toolkit</span> by
+          Manuela Travaglianti and Thomas Both, McCoy Family Center for Ethics in Society,
+          Stanford University, used under{' '}
+          <a
+            href="https://creativecommons.org/licenses/by/4.0/"
+            target="_blank"
+            rel="noreferrer"
+            className="not-italic underline hover:text-[#1c3a5e]"
+          >
+            CC&nbsp;BY&nbsp;4.0
+          </a>
+          . Changes were made: the original PDF worksheets were adapted into an
+          interactive web app with form-based input and a custom PDF export. Not
+          affiliated with or endorsed by Stanford University.
         </p>
       </section>
     </div>
@@ -1292,6 +1303,7 @@ const ToolView = ({ toolKey, mode, setMode, loadedDraft, onSaved }) => {
   const [shareCode, setShareCode] = useState(null);
   const [shareError, setShareError] = useState(null);
   const [shareCopied, setShareCopied] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (loadedDraft) setDraft(loadedDraft);
@@ -1321,11 +1333,11 @@ const ToolView = ({ toolKey, mode, setMode, loadedDraft, onSaved }) => {
 
   const handleShare = async () => {
     setShareError(null);
-    const code = await shareDraft({ ...draft, tool: toolKey });
-    if (code) {
-      setShareCode(code);
+    const res = await shareDraft({ ...draft, tool: toolKey });
+    if (res.code) {
+      setShareCode(res.code);
     } else {
-      setShareError('Share failed. Has Vercel KV been set up? Check the README.');
+      setShareError(res.error);
     }
   };
 
@@ -1337,41 +1349,20 @@ const ToolView = ({ toolKey, mode, setMode, loadedDraft, onSaved }) => {
     }
   };
 
-  const handleExport = () => {
-    const lines = [];
-    lines.push(`# ${tool.name} — ${draft.title || 'Untitled'}`);
-    lines.push('');
-    if (draft.action) lines.push(`**Action / Creation:** ${draft.action}`);
-    lines.push('');
-    Object.entries(draft).forEach(([k, v]) => {
-      if (['id', 'title', 'tool', 'updated', 'action', 'shared'].includes(k)) return;
-      if (typeof v === 'string' && v.trim()) {
-        lines.push(`### ${k}`);
-        lines.push(v);
-        lines.push('');
-      } else if (Array.isArray(v)) {
-        lines.push(`### ${k}`);
-        v.forEach((item) => {
-          if (typeof item === 'string') lines.push(`- ${item}`);
-          else if (typeof item === 'object') {
-            Object.entries(item).forEach(([sk, sv]) => lines.push(`  - ${sk}: ${sv}`));
-            lines.push('');
-          }
-        });
-        lines.push('');
-      } else if (typeof v === 'object' && v !== null) {
-        lines.push(`### ${k}`);
-        Object.entries(v).forEach(([sk, sv]) => lines.push(`- ${sk}: ${sv}`));
-        lines.push('');
-      }
-    });
-    const blob = new Blob([lines.join('\n')], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${tool.name.replace(/\s/g, '-').toLowerCase()}-${draft.title || 'draft'}.md`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const { downloadToolkitPdf } = await import('./pdf/EthicsToolkitPdf.jsx');
+      await downloadToolkitPdf({ toolKey, draft: { ...draft, tool: toolKey } });
+      setSavedStatus('PDF downloaded');
+    } catch (e) {
+      console.error('PDF export failed', e);
+      setSavedStatus('PDF export failed');
+    } finally {
+      setExporting(false);
+      setTimeout(() => setSavedStatus(null), 2500);
+    }
   };
 
   return (
@@ -1389,14 +1380,20 @@ const ToolView = ({ toolKey, mode, setMode, loadedDraft, onSaved }) => {
           {mode === 'use' && (
             <div className="flex items-center gap-2 py-3">
               {savedStatus && <span className="text-[12px] text-emerald-700 italic mr-2">{savedStatus}</span>}
-              {shareError && <span className="text-[12px] text-[#8C1515] italic mr-2">{shareError}</span>}
-              <SmallButton onClick={handleExport} icon={Download}>Export</SmallButton>
+              <SmallButton onClick={handleExport} icon={Download}>{exporting ? 'Generating…' : 'Download PDF'}</SmallButton>
               <SmallButton onClick={handleShare} icon={Share2}>Share</SmallButton>
               <SmallButton onClick={handleSave} icon={Save} variant="primary">Save Draft</SmallButton>
             </div>
           )}
         </div>
       </div>
+
+      {shareError && (
+        <div className="mb-6 -mt-2 bg-[#8C1515]/5 border border-[#8C1515]/25 text-[#8C1515] text-[13px] px-4 py-3 rounded-sm flex items-start gap-2">
+          <span className="font-serif">{shareError}</span>
+          <button onClick={() => setShareError(null)} className="ml-auto text-[#8C1515]/60 hover:text-[#8C1515] flex-shrink-0"><X size={14} /></button>
+        </div>
+      )}
 
       {shareCode && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -1493,12 +1490,12 @@ const WorkspaceView = ({ drafts, refreshDrafts, onLoad }) => {
   const handleLoadShared = async () => {
     setLoadError(null);
     if (!shareInput.trim()) return;
-    const data = await loadSharedDraft(shareInput);
-    if (!data) {
-      setLoadError('Code not found or expired. Check the code and try again.');
+    const res = await loadSharedDraft(shareInput);
+    if (res.error || !res.data) {
+      setLoadError(res.error || 'Code not found or expired. Check the code and try again.');
       return;
     }
-    onLoad(data.tool, data);
+    onLoad(res.data.tool, res.data);
     setShareInput('');
   };
 
