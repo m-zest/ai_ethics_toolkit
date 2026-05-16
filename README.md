@@ -1,195 +1,124 @@
+<div align="center">
+
 # Ethics Toolkit
 
-An interactive web app that turns the Stanford McCoy Family Center Ethics Toolkit into a usable workspace. Five worksheets (Future Story, Impacts Explorer, Ethics Frame, Ethics Gauge, Weighing Options), nine Value Cards, draft saving, and code-based sharing.
+**Put values into action.** An interactive workspace for ethical review of products, AI systems, and decisions — adapted from the Stanford McCoy Family Center *Ethics Toolkit*.
 
-Built with Next.js 14, Tailwind CSS, and Vercel KV (Redis) for shared drafts.
+Five worksheets · nine Value Cards · save, share & export to a polished PDF
 
----
-
-## What it does
-
-- **Learn each tool** — definitions, benefits, how-to, and worked examples from the original toolkit
-- **Use each tool** — interactive form for that worksheet, saves as you type
-- **Save Drafts** — stored in your browser (localStorage)
-- **Share Drafts** — generates a 6-character code; collaborators paste it to load
-- **Export Drafts** — download as Markdown for sharing outside the tool
-- **Value Cards** — all 9 ethical values with degrading-vs-promoting spectra
+</div>
 
 ---
 
-## Deploy to Vercel (10 minutes, no command line needed)
+## Overview
 
-The fastest path uses Vercel's GitHub integration. You will not need Node or npm installed locally.
+The Ethics Toolkit turns a paper worksheet process into a focused web app. Teams work through five structured tools — **Future Story**, **Impacts Explorer**, **Ethics Frame**, **Ethics Gauge**, and **Weighing Options** — to surface benefits, harms, and trade‑offs before they ship.
 
-### Step 1: Put this code in a GitHub repo
+| Capability | What it does |
+|---|---|
+| **Learn** | Definition, benefits, how‑to, and a worked example for every tool |
+| **Use** | A guided worksheet for each tool, with autosave to the form as you type |
+| **Save Draft** | Stores the draft privately in your browser (`localStorage`) |
+| **Share** | Generates a 6‑character code; collaborators paste it to load the draft |
+| **Download PDF** | Exports a professional, print‑ready PDF laid out like the original toolkit |
+| **Value Cards** | Nine ethical values with concrete *degrading ↔ promoting* spectra |
 
-1. Go to [github.com/new](https://github.com/new) and create a new empty repo, e.g. `ethics-toolkit`.
-2. Don't initialize with README or `.gitignore` (this project has its own).
-3. On GitHub, click "uploading an existing file".
-4. Drag every file from this folder (including `app/`, `package.json`, `.gitignore`, etc.) into the upload area.
-5. Commit.
-
-### Step 2: Import the repo into Vercel
-
-1. Go to [vercel.com/new](https://vercel.com/new) and sign in with GitHub.
-2. Click "Import" next to your `ethics-toolkit` repo.
-3. Leave all defaults (Framework Preset: Next.js, Root Directory: `./`).
-4. Click "Deploy".
-
-You'll get a live URL like `ethics-toolkit-yourname.vercel.app` in about 90 seconds. The app will work — Home, Learn, Use, Save Draft, Export, Value Cards, all functional.
-
-**Only the Share button will not work yet**, because it needs a database. That's the next step.
-
-### Step 3: Add Vercel KV (the database for share codes)
-
-1. In your Vercel project dashboard, click the **Storage** tab.
-2. Click "Create Database" → choose **Marketplace Database Providers** → pick **Upstash** → **Redis**.
-3. Pick the **Free plan** (10,000 commands/day is way more than enough).
-4. Click "Create" and let it provision (~30 seconds).
-5. When prompted, click "Connect" to attach it to your `ethics-toolkit` project. Vercel will automatically inject these environment variables: `KV_URL`, `KV_REST_API_URL`, `KV_REST_API_TOKEN`, `KV_REST_API_READ_ONLY_TOKEN`.
-6. Go to the **Deployments** tab and click the three dots next to the latest deployment → **Redeploy**. (This is needed so the new env vars take effect.)
-
-That's it. Share now works. Click "Share" on any worksheet, get a 6-character code, send it to a teammate. They go to Workspace, paste the code, your draft loads.
+Built with **Next.js 14**, **Tailwind CSS**, **@react-pdf/renderer**, and serverless **Redis (KV)** for shared drafts.
 
 ---
 
-## Running locally (optional, for development)
+## Deploy to Vercel
 
-Requires Node.js 18+ installed.
+No command line required. The whole flow takes about ten minutes.
+
+### 1 · Put the code on GitHub
+
+Create a new repository and upload these files (or push this repo). Do not add a generated `.gitignore` or README — the project ships its own.
+
+### 2 · Import into Vercel
+
+1. Go to **[vercel.com/new](https://vercel.com/new)** and sign in with GitHub.
+2. **Import** the repository.
+3. Keep every default (Framework: *Next.js*, Root: `./`) and click **Deploy**.
+
+In ~90 seconds you get a live URL. Home, Learn, Use, **Save Draft**, **Download PDF**, and Value Cards all work immediately. Only **Share** needs the database below.
+
+### 3 · Enable sharing (the KV database)
+
+Share codes are stored in a serverless Redis instance. This is the part that previously failed when the database was missing or wired up under different variable names — it is now handled automatically, you just need to connect a database once.
+
+1. Open your project in Vercel → **Storage** tab.
+2. **Create Database → Upstash → Redis** (the **Free** plan is plenty: 10,000 commands/day).
+3. When prompted, **Connect** it to this project. Vercel injects the credentials as environment variables for you.
+4. Go to **Deployments**, open the latest one's **⋯** menu, and click **Redeploy** so the new variables are picked up.
+
+That's it. The app accepts either the classic `KV_REST_API_URL` / `KV_REST_API_TOKEN` names **or** the `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` names, so it works no matter which path provisioned the database. If sharing is ever used before a database is connected, the app now shows a clear, actionable message instead of a generic failure.
+
+> **Verifying:** open any worksheet → **Share** → you should get a code. Paste it in **Workspace → Load a shared draft** to confirm round‑trip.
+
+---
+
+## Local development
+
+Requires Node.js 18+.
 
 ```bash
 npm install
-npm run dev
+npm run dev      # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
-
-Note: Share will fail locally unless you set the same KV env vars in a `.env.local` file. You can copy them from your Vercel project's Settings → Environment Variables tab. Save and Export work locally without any setup.
+`Save Draft` and `Download PDF` work locally with zero configuration. To test **Share** locally, copy one credential pair from your Vercel project's **Settings → Environment Variables** into a `.env.local` file (see `.env.example`).
 
 ---
 
-## How to use the app
+## The PDF export
 
-### Workflow for one ethics review
-
-1. Click any tool from the home page (e.g., **Ethics Frame**).
-2. The **Learn** tab shows you the definition, benefits, how-to, and a worked example.
-3. Click **Use it** in the top bar.
-4. Fill in the boxes. Your text saves to the form as you type but does not persist until you click Save Draft.
-5. Click **Save Draft** to keep it in your Workspace.
-6. Click **Share** to generate a 6-character code to send to collaborators.
-7. Click **Export** to download as a Markdown file.
-
-### Which tool when
-
-- **Future Story** — earliest, when you want to imagine the long-term story of a project
-- **Impacts Explorer** — when you need to map second- and third-order effects
-- **Ethics Frame** — the workhorse for a single feature or decision review
-- **Ethics Gauge** — when you want a quick visual assessment across four dimensions
-- **Weighing Options** — when comparing two or more concrete options
+`Download PDF` renders the filled worksheet to a vector PDF using `@react-pdf/renderer`. The layout mirrors the original toolkit worksheets — landscape pages, labelled prompt boxes, the red→green Ethics Gauge scale, benefit/harm colour coding, a branded cover, and a per‑page attribution footer. Text is selectable and the file is small. Generation runs entirely in the browser, so it adds no server cost on Vercel.
 
 ---
 
-## File structure
+## Project structure
 
 ```
-ethics-toolkit/
-├── app/
-│   ├── api/
-│   │   └── share/
-│   │       ├── route.js              # POST: create share code
-│   │       └── [code]/route.js       # GET: load by code
-│   ├── EthicsToolkitApp.jsx          # Main React component (all UI)
-│   ├── globals.css                   # Fonts + Tailwind base
-│   ├── layout.jsx                    # Root HTML shell
-│   └── page.jsx                      # Entry point
-├── .env.example                      # KV env vars (auto-set by Vercel)
-├── .gitignore
-├── jsconfig.json                     # Path aliases
-├── next.config.mjs
-├── package.json
-├── postcss.config.js
-├── README.md                         # This file
-└── tailwind.config.js
+app/
+├── api/share/
+│   ├── route.js            # POST — create a share code
+│   └── [code]/route.js     # GET  — load a draft by code
+├── lib/kv.js               # Resilient KV client (resolves KV_ or UPSTASH_ vars)
+├── pdf/EthicsToolkitPdf.jsx # Professional PDF document + download helper
+├── EthicsToolkitApp.jsx    # All UI (tools, learn/use, workspace, value cards)
+├── globals.css             # Fonts + Tailwind base
+├── layout.jsx              # Root HTML shell
+└── page.jsx                # Entry point
 ```
 
-### Data storage
-
-- **Personal drafts** live in the browser's `localStorage`. They are private to one device and one browser. Clearing browser data deletes them.
-- **Shared drafts** live in Vercel KV (Upstash Redis) keyed by the 6-character code. They expire after 90 days.
-
-This means: someone else cannot see your saved drafts unless you generate a share code and send it to them.
+**Data:** personal drafts live only in the browser's `localStorage`; shared drafts live in Redis keyed by the 6‑character code and expire after 90 days. Nobody can see your saved drafts unless you generate and send a code.
 
 ---
 
-## Customization
+## Attribution & License
 
-### Adding your organization's logo
+This project is an **independent adaptation** of:
 
-Open `app/EthicsToolkitApp.jsx`, search for "Ethics Toolkit" in the header, replace the concentric-circle logo div with an `<img />` tag.
+> **Ethics Toolkit: Put Values Into Action** (v1.1, October 2025) — Manuela Travaglianti & Thomas Both, McCoy Family Center for Ethics in Society, Stanford University.
 
-### Adding custom Value Cards
+The original toolkit is released under the **Creative Commons Attribution 4.0 International License (CC BY 4.0)** — <https://creativecommons.org/licenses/by/4.0/>. That license permits use, adaptation, and redistribution (including commercially), provided attribution is given, the license is linked, and changes are indicated.
 
-In `app/EthicsToolkitApp.jsx`, find the `VALUE_CARDS` array (around line 200). Add new objects with the same shape:
+**Changes made:** the original PDF worksheets were adapted into an interactive web application — content was reorganized into form‑based input, some explanatory text was condensed, an interactive Ethics Gauge and Value Cards were added, and a custom PDF export was implemented. The branding mark used here is this project's own and is **not** Stanford's logo.
 
-```js
-{
-  name: 'Sustainability',
-  definition: 'Meeting present needs without compromising future generations.',
-  spectra: [
-    ['Our creation depletes resources rapidly.', 'Our creation uses resources responsibly.'],
-    // add two more spectra
-  ],
-}
-```
+> This is an independent adaptation. It is **not** affiliated with, maintained by, or endorsed by Stanford University or the McCoy Family Center for Ethics in Society.
 
-### Adding new tools
+The attribution, license link, and change note above are reproduced on the app's home page and in every exported PDF, satisfying the CC BY 4.0 conditions.
 
-Add a new entry to the `TOOLS` object, write a new `*Use` component, register it in `USE_PANELS`. The navigation bar picks it up automatically.
-
-### Changing the color scheme
-
-The navy `#1c3a5e` and cardinal `#8C1515` are hardcoded inline. Find-and-replace in `app/EthicsToolkitApp.jsx`. Or extend the Tailwind config and switch to class-based colors.
-
----
-
-## Costs
-
-Free tier should cover normal individual or small-team use:
-
-- **Vercel** — Hobby plan is free. Includes hosting, builds, custom domain.
-- **Upstash Redis** — Free plan: 10,000 commands/day, 256MB storage. Each share = 1 write. Each load = 1 read. You can comfortably do hundreds of shares per day.
-
-If you outgrow this, both have low-cost paid tiers.
-
----
-
-## Attribution
-
-Content (definitions, examples, structure of worksheets, Value Cards) is adapted from:
-
-> **Ethics Toolkit: Put Values Into Action (v1.1, October 2025)** by Manuela Travaglianti and Thomas Both, McCoy Family Center for Ethics in Society, Stanford University. Published under Creative Commons Attribution 4.0 International (CC BY 4.0).
->
-> Original: [ethicstoolkit.stanford.edu](https://ethicstoolkit.stanford.edu)
-
-This implementation is an independent adaptation. Stanford does not endorse this tool.
-
----
-
-## License
-
-Code: MIT. Content (toolkit text and examples): CC BY 4.0, as inherited from the source. If you fork and modify, keep the attribution.
+**This project's own code** is released under the **MIT License**. The adapted toolkit *content* remains under **CC BY 4.0**, inherited from the source — keep this attribution intact if you fork.
 
 ---
 
 ## Troubleshooting
 
-**"Share failed. Has Vercel KV been set up?"** — You skipped Step 3 of deployment, or you haven't redeployed since adding KV. Go to your Vercel project → Storage tab, confirm KV is connected, then go to Deployments and trigger a redeploy.
-
-**Code not found when loading shared draft** — Codes expire after 90 days. Also check for typos (the code is case-insensitive in practice but the input is uppercased automatically).
-
-**Saved drafts disappeared** — Saved drafts are in `localStorage`. If you cleared browser data, used a different browser, or are in incognito mode, they won't show up. There is no cloud sync for personal drafts by design (privacy). To move drafts between devices, use Share or Export.
-
-**Fonts look wrong** — Fonts load from Google Fonts. If your network blocks Google, swap the import in `app/globals.css` for self-hosted fonts.
-
-**Build fails on Vercel** — Make sure you uploaded `package.json` (the deps list). If npm install errors mention a specific package, you might be missing a file.
+| Symptom | Fix |
+|---|---|
+| *"Sharing is not configured…"* | Connect Upstash Redis (Storage tab) and **redeploy** — see step 3. |
+| Share code not found | Codes expire after 90 days; check for typos (input is auto‑uppercased). |
+| Saved drafts vanished | They live in `localStorage` — cleared browser data, a different browser, or incognito will not show them. Use Share or Download PDF to move work between devices. |
+| Build fails on Vercel | Ensure `package.json` was uploaded so dependencies install. |
