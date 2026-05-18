@@ -1304,10 +1304,19 @@ const ToolView = ({ toolKey, mode, setMode, loadedDraft, onSaved }) => {
   const [shareError, setShareError] = useState(null);
   const [shareCopied, setShareCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [showPdfModal, setShowPdfModal] = useState(false);
+  const [pdfLayout, setPdfLayout] = useState('modern');
 
   useEffect(() => {
     if (loadedDraft) setDraft(loadedDraft);
   }, [loadedDraft]);
+
+  useEffect(() => {
+    try {
+      const pref = localStorage.getItem('ethics_pdf_layout_pref');
+      if (pref === 'classic' || pref === 'modern') setPdfLayout(pref);
+    } catch {}
+  }, []);
 
   const update = (field, value) => setDraft((prev) => ({ ...prev, [field]: value }));
 
@@ -1349,12 +1358,20 @@ const ToolView = ({ toolKey, mode, setMode, loadedDraft, onSaved }) => {
     }
   };
 
-  const handleExport = async () => {
+  const handleExport = () => {
     if (exporting) return;
+    setShowPdfModal(true);
+  };
+
+  const confirmPdfDownload = async () => {
+    setShowPdfModal(false);
     setExporting(true);
     try {
-      const { downloadToolkitPdf } = await import('./pdf/EthicsToolkitPdf.jsx');
-      await downloadToolkitPdf({ toolKey, draft: { ...draft, tool: toolKey } });
+      localStorage.setItem('ethics_pdf_layout_pref', pdfLayout);
+    } catch {}
+    try {
+      const { downloadPdf } = await import('./pdf/EthicsToolkitPdf.jsx');
+      await downloadPdf(toolKey, { ...draft, tool: toolKey }, pdfLayout);
       setSavedStatus('PDF downloaded');
     } catch (e) {
       console.error('PDF export failed', e);
@@ -1392,6 +1409,64 @@ const ToolView = ({ toolKey, mode, setMode, loadedDraft, onSaved }) => {
         <div className="mb-6 -mt-2 bg-[#8C1515]/5 border border-[#8C1515]/25 text-[#8C1515] text-[13px] px-4 py-3 rounded-sm flex items-start gap-2">
           <span className="font-serif">{shareError}</span>
           <button onClick={() => setShareError(null)} className="ml-auto text-[#8C1515]/60 hover:text-[#8C1515] flex-shrink-0"><X size={14} /></button>
+        </div>
+      )}
+
+      {showPdfModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-sm shadow-2xl max-w-lg w-full p-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-2xl text-[#1c3a5e]" style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 500 }}>Download as PDF</h3>
+              <button onClick={() => setShowPdfModal(false)} className="text-stone-400 hover:text-stone-700"><X size={20} /></button>
+            </div>
+            <p className="text-stone-600 text-[14px] mb-6 font-serif">
+              Choose a layout. Your choice is remembered for next time.
+            </p>
+            <div className="grid grid-cols-2 gap-4 mb-7">
+              {[
+                { key: 'modern', label: 'Modern', desc: 'Clean document layout, easy to read', icon: FileText },
+                { key: 'classic', label: 'Classic', desc: 'Matches the original Stanford worksheet layout', icon: Frame },
+              ].map((opt) => {
+                const OptIcon = opt.icon;
+                const active = pdfLayout === opt.key;
+                return (
+                  <button
+                    key={opt.key}
+                    onClick={() => setPdfLayout(opt.key)}
+                    className={`text-left p-4 rounded-sm border-2 transition-all ${active ? 'border-[#1c3a5e] bg-[#1c3a5e]/5' : 'border-stone-200 hover:border-[#1c3a5e]/40'}`}
+                  >
+                    <div className={`mb-3 h-20 rounded-sm border flex items-center justify-center ${active ? 'border-[#1c3a5e]/30 bg-white' : 'border-stone-200 bg-stone-50'}`}>
+                      {opt.key === 'modern' ? (
+                        <div className="w-12 space-y-1">
+                          <div className="h-2 bg-[#1c3a5e] rounded-[1px]" />
+                          <div className="h-1 bg-stone-300 rounded-[1px]" />
+                          <div className="h-1 bg-stone-300 rounded-[1px] w-3/4" />
+                          <div className="h-3 bg-stone-200 rounded-[1px] mt-1" />
+                        </div>
+                      ) : (
+                        <div className="w-14 grid grid-cols-2 gap-1">
+                          <div className="h-3 bg-stone-200 rounded-[1px]" />
+                          <div className="h-3 bg-stone-200 rounded-[1px]" />
+                          <div className="h-3 bg-stone-200 rounded-[1px]" />
+                          <div className="h-3 bg-stone-200 rounded-[1px]" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <OptIcon size={15} className={active ? 'text-[#1c3a5e]' : 'text-stone-500'} />
+                      <span className={`text-[13px] font-semibold ${active ? 'text-[#1c3a5e]' : 'text-stone-700'}`}>{opt.label}</span>
+                      {active && <Check size={14} className="text-[#1c3a5e] ml-auto" />}
+                    </div>
+                    <p className="text-[11px] text-stone-500 mt-1.5 font-serif leading-snug">{opt.desc}</p>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex justify-end gap-2">
+              <SmallButton onClick={() => setShowPdfModal(false)}>Cancel</SmallButton>
+              <SmallButton onClick={confirmPdfDownload} variant="primary" icon={Download}>Download</SmallButton>
+            </div>
+          </div>
         </div>
       )}
 
